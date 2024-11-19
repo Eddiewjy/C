@@ -68,7 +68,7 @@ void EnQueue(Queue *q, Car c) {
         q->queue[q->rear] = c;
         q->rear = (q->rear + 1) % MAXSIZE;
     } else {
-        printf("便道已满\n");
+        printf("便道已经满了\n");
     }
 }
 
