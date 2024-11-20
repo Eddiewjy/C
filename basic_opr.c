@@ -383,21 +383,3 @@ int Index(SString S, SString T, int pos) {
     else
         return 0;
 }
-// 24.串拼接
-Status Concat(SString S1, SString S2, SString &T) {
-    // T返回S1和S2接成的新串。若无截断, 返回TRUE，否则FALSE。
-    if (S1[0] + S2[0] <= MAXSTRLEN) { // 未截断
-        T[1..S1 [0]] = S1[1..S1 [0]];
-        T[S1[0] + 1..S1 [0] + S2[0]] = S2[1..S2 [0]];
-        T[0] = S1[0] + S2[0];
-        uncut = TRUE;
-    } else if (S1[0] < MAXSTRSIZE) { // 截断
-        T[1..S1 [0]] = S1[1..S1 [0]];
-        T[S1[0] + 1..MAXSTRLEN] = S2[1.. MAXSTRLEN - S1[0]];
-        uncut = FALSE;
-    } else {                                // 截断(仅取S1)
-        T[0..MAXSTRLEN] = S1[0..MAXSTRLEN]; // T[0] == S1[0] == MAXSTRLEN
-        uncut = FALSE;
-    }
-    　return uncut;
-} // Concat
