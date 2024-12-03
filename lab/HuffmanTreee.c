@@ -18,6 +18,15 @@ typedef struct {
     char *code; // 动态分配编码字符串
 } HuffmanCode;
 
+typedef struct {
+    int index;  // Huffman树节点的索引
+    int weight; // 权值
+} HeapNode;//堆节点定义
+
+int compare(const void *a, const void *b) {
+    return ((HeapNode *)a)->weight - ((HeapNode *)b)->weight;
+}//堆比较函数（升序排列）
+
 // 函数声明
 void buildHuffmanTree(HuffmanNode *huffTree, int n);
 void generateCodes(HuffmanNode *huffTree, HuffmanCode *codes, int n);
@@ -40,7 +49,7 @@ int main() {
     do {
         printf("\n===== 哈夫曼编码工具 =====\n");
         printf("1. 输入字符及权值\n");
-        printf("2. 查看Huffman树\n");
+        printf("2. 查看Huffman编码\n");
         printf("3. 进行编码\n");
         printf("4. 进行译码\n");
         printf("5. 从文件读取输入\n");
@@ -180,23 +189,44 @@ int main() {
 
 void buildHuffmanTree(HuffmanNode *huffTree, int n) {
     int m = 2 * n - 1;
-    for (int i = n; i < m; i++) {
-        int min1 = -1, min2 = -1;
-        for (int j = 0; j < i; j++) {
-            if (huffTree[j].parent == -1) { // 找到最小节点
-                if (min1 == -1 || huffTree[j].weight < huffTree[min1].weight) {
-                    min2 = min1;
-                    min1 = j;
-                } else if (min2 == -1 || huffTree[j].weight < huffTree[min2].weight) {
-                    min2 = j;
-                }
-            }
-        }
-        huffTree[i].weight = huffTree[min1].weight + huffTree[min2].weight;
-        huffTree[i].left = min1;
-        huffTree[i].right = min2;
-        huffTree[min1].parent = huffTree[min2].parent = i;
+    HeapNode *heap = (HeapNode *)malloc(n * sizeof(HeapNode)); // 初始化堆
+    int heapSize = n;
+
+    // 初始化堆，将每个字符节点加入堆中
+    for (int i = 0; i < n; i++) {
+        heap[i].index = i;
+        heap[i].weight = huffTree[i].weight;
     }
+
+    // 构造初始堆
+    qsort(heap, heapSize, sizeof(HeapNode), compare);
+
+    // 构造哈夫曼树
+    for (int i = n; i < m; i++) {
+        // 取出堆中权值最小的两个节点
+        HeapNode min1 = heap[0];
+        heap[0] = heap[--heapSize]; // 删除堆顶
+        qsort(heap, heapSize, sizeof(HeapNode), compare);
+
+        HeapNode min2 = heap[0];
+        heap[0] = heap[--heapSize]; // 删除堆顶
+        qsort(heap, heapSize, sizeof(HeapNode), compare);
+
+        // 合并两个最小节点，生成新节点
+        huffTree[i].weight = min1.weight + min2.weight;
+        huffTree[i].left = min1.index;
+        huffTree[i].right = min2.index;
+        huffTree[min1.index].parent = i;
+        huffTree[min2.index].parent = i;
+
+        // 将新节点插入堆
+        heap[heapSize].index = i;
+        heap[heapSize].weight = huffTree[i].weight;
+        heapSize++;
+        qsort(heap, heapSize, sizeof(HeapNode), compare);
+    }
+
+    free(heap); // 释放堆内存
 }
 
 // 生成Huffman编码
@@ -222,10 +252,9 @@ void generateCodes(HuffmanNode *huffTree, HuffmanCode *codes, int n) {
 
 // 查看Huffman树
 void printHuffmanTree(HuffmanNode *huffTree, int n) {
-    printf("Huffman树结构:\n");
+    printf("字符及其哈夫曼编码:\n");
     for (int i = 0; i < n; i++) {
-        printf("节点 %d: 字符=%c, 权值=%d, 左子=%d, 右子=%d, 父=%d\n", i, huffTree[i].ch, huffTree[i].weight,
-               huffTree[i].left, huffTree[i].right, huffTree[i].parent);
+        printf("%c: %s\n", codes[i].ch, codes[i].code);
     }
 }
 
